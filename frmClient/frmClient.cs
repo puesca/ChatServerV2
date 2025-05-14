@@ -27,47 +27,45 @@ namespace frmClient
 
         private void AppendChatBubble(string sender, string message, bool isOwnMessage = false, bool isSystem = false)
         {
-            if (txtMessages.InvokeRequired)
+            // ========== Create bubble (label) ==========
+            Label bubble = new Label();
+            bubble.AutoSize = true;
+            bubble.MaximumSize = new Size(300, 0);
+            bubble.Font = new Font("Segoe UI", 10);
+            bubble.Padding = new Padding(10);
+            bubble.Text = message;
+            bubble.BackColor = isSystem ? Color.DarkGray :
+                              isOwnMessage ? Color.DeepSkyBlue :
+                                             Color.DarkGray;
+            bubble.ForeColor = Color.White;
+            bubble.BorderStyle = BorderStyle.FixedSingle;
+            bubble.TextAlign = ContentAlignment.MiddleLeft;
+            bubble.Margin = new Padding(5);
+
+            // ========== Wrap bubble in container panel ==========
+            Panel bubbleWrapper = new Panel();
+            bubbleWrapper.AutoSize = true;
+            bubbleWrapper.Padding = new Padding(5);
+            bubbleWrapper.Width = txtMessages.ClientSize.Width - 20;
+            bubbleWrapper.BackColor = Color.Transparent;
+
+            bubbleWrapper.Controls.Add(bubble);
+
+            // Manual alignment
+            if (isOwnMessage)
             {
-                txtMessages.Invoke((MethodInvoker)(() => AppendChatBubble(sender, message, isOwnMessage, isSystem)));
+                bubble.Left = bubbleWrapper.Width - bubble.Width - 20; // right-align manually
             }
             else
             {
-                string header = isSystem ? $"========== {sender} ==========" : $"[{sender}]";
-                string content = message;
-                string separator = new string('-', 40);
-
-                HorizontalAlignment alignment = HorizontalAlignment.Left;
-
-                if (isSystem)
-                {
-                    alignment = HorizontalAlignment.Center;
-                }
-                else if (isOwnMessage)
-                {
-                    alignment = HorizontalAlignment.Right;
-                }
-
-                AppendLine(header, alignment);
-                AppendLine(content, alignment);
-                AppendLine(separator, alignment);
+                bubble.Left = 10; // left-align
             }
-        }
 
-        private void AppendLine(string text, HorizontalAlignment alignment)
-        {
-            txtMessages.SuspendLayout();
+            // Add the wrapper to the FlowLayoutPanel
+            txtMessages.Controls.Add(bubbleWrapper);
 
-            txtMessages.SelectionStart = txtMessages.TextLength;
-            txtMessages.SelectionLength = 0;
-            txtMessages.SelectionAlignment = alignment;
-            txtMessages.AppendText(text + "\r\n");
-
-            txtMessages.SelectionStart = txtMessages.Text.Length;
-            txtMessages.ScrollToCaret();
-
-            txtMessages.ResumeLayout();
-
+            // Scroll to the last added message
+            txtMessages.ScrollControlIntoView(bubbleWrapper);
         }
 
         private void StartListeningForServers()
@@ -134,22 +132,21 @@ namespace frmClient
 
                     txtMessages.Invoke((Action)(() =>
                     {
+                        // Skip own message (already displayed locally)
                         if (receivedMessage.StartsWith(clientName + ":"))
-                        {
-                            return; // Own message
-                        }
+                            return;
 
-                        txtMessages.SelectionAlignment = HorizontalAlignment.Left;
-                        txtMessages.AppendText(receivedMessage + "\r\n");
+                        // Append received message as a chat bubble (left-aligned)
+                        AppendChatBubble("Server", receivedMessage, isOwnMessage: false);
                     }));
                 }
             }
             catch (Exception ex)
             {
-                // Connection error (e.g., server stopped)
+                // Optionally log ex.Message
             }
 
-            // If we reach here, the server is likely down
+            // Connection lost — show system message
             txtMessages.Invoke((Action)(() =>
             {
                 AppendChatBubble("System", "Disconnected from server. Server may have stopped.", isSystem: true);
@@ -157,10 +154,12 @@ namespace frmClient
 
             tcpClient?.Close();
         }
+
         #endregion
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
+            btnSetName_Click(sender, e);
             if (string.IsNullOrEmpty(clientName))
             {
                 MessageBox.Show("Please set your name before connecting.");
@@ -169,7 +168,7 @@ namespace frmClient
 
             try
             {
-                string serverIp = txtServerIP.SelectedItem?.ToString();
+                string serverIp = txtServerIP.Text?.Trim();
                 if (string.IsNullOrEmpty(serverIp))
                 {
                     MessageBox.Show("Please select a server IP to connect.");
@@ -182,7 +181,7 @@ namespace frmClient
                 receiveThread = new Thread(ReceiveMessages);
                 receiveThread.Start();
 
-                txtMessages.AppendText("Connected to server...\r\n");
+                txtMessages.Text += "Connected to server...\r\n";
 
                 string joinMsg = $"============== {clientName} has joined =============\r\n";
                 byte[] nameBytes = Encoding.ASCII.GetBytes(joinMsg);
@@ -205,11 +204,9 @@ namespace frmClient
                 byte[] messageBytes = Encoding.ASCII.GetBytes(fullMessage);
                 stream.Write(messageBytes, 0, messageBytes.Length);
 
-                // Show own message on the right
-                txtMessages.SelectionAlignment = HorizontalAlignment.Right;
-                txtMessages.AppendText(fullMessage);
+                AppendChatBubble(clientName, message, isOwnMessage: true);
 
-                txtInput.Clear();
+                txtInput.Text = string.Empty;
             }
         }
 
@@ -246,10 +243,10 @@ namespace frmClient
 
             StopListeningForServers();
 
-            // Slight delay to simulate refresh feedback
+        
             Task.Run(() =>
             {
-                Thread.Sleep(300); // Optional delay
+                Thread.Sleep(300); 
                 this.Invoke((MethodInvoker)(() =>
                 {
                     StartListeningForServers();
@@ -262,7 +259,7 @@ namespace frmClient
         {
             if (e.KeyCode == Keys.Enter && !e.Shift)
             {
-                e.SuppressKeyPress = true; // prevent newline or ding sound
+                e.SuppressKeyPress = true;
                 btnSend_Click(sender, e);
             }
         }
