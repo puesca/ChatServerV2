@@ -70,7 +70,7 @@
             hopeForm1.Image = null;
             hopeForm1.Location = new Point(0, 0);
             hopeForm1.Name = "hopeForm1";
-            hopeForm1.Size = new Size(344, 40);
+            hopeForm1.Size = new Size(343, 40);
             hopeForm1.TabIndex = 10;
             hopeForm1.Text = "Client Form";
             hopeForm1.ThemeColor = Color.Green;
@@ -207,11 +207,12 @@
             // txtMessages
             // 
             txtMessages.AutoScroll = true;
+            txtMessages.BackColor = Color.White;
             txtMessages.Dock = DockStyle.Top;
             txtMessages.FlowDirection = FlowDirection.TopDown;
             txtMessages.Location = new Point(0, 40);
             txtMessages.Name = "txtMessages";
-            txtMessages.Size = new Size(344, 333);
+            txtMessages.Size = new Size(343, 333);
             txtMessages.TabIndex = 19;
             txtMessages.WrapContents = false;
             // 
@@ -251,9 +252,9 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(344, 493);
-            Controls.Add(txtInput);
+            ClientSize = new Size(343, 493);
             Controls.Add(txtMessages);
+            Controls.Add(txtInput);
             Controls.Add(btnConnect);
             Controls.Add(btnSend);
             Controls.Add(txtUsername);

@@ -27,46 +27,71 @@ namespace frmClient
 
         private void AppendChatBubble(string sender, string message, bool isOwnMessage = false, bool isSystem = false)
         {
-            // ========== Create bubble (label) ==========
+            int bubbleMaxWidth = 300;
+            int sidePadding = 20;
+
+            // ========== Create timestamp label ==========
+            Label timestampLabel = new Label();
+            timestampLabel.AutoSize = true;
+            timestampLabel.Font = new Font("Segoe UI", 6, FontStyle.Regular);
+            timestampLabel.ForeColor = Color.Gray;
+            timestampLabel.Text = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            timestampLabel.Margin = new Padding(5, 0, 5, 2);
+
+            // ========== Create message bubble ==========
             Label bubble = new Label();
             bubble.AutoSize = true;
-            bubble.MaximumSize = new Size(300, 0);
+            bubble.MaximumSize = new Size(bubbleMaxWidth, 0);
             bubble.Font = new Font("Segoe UI", 10);
             bubble.Padding = new Padding(10);
             bubble.Text = message;
-            bubble.BackColor = isSystem ? Color.DarkGray :
-                              isOwnMessage ? Color.DeepSkyBlue :
-                                             Color.DarkGray;
+            bubble.BackColor = isSystem ? Color.FromArgb(89, 21, 23) :
+                              isOwnMessage ? Color.FromArgb(11, 128, 42) :
+                                             Color.FromArgb(77, 108, 135);
             bubble.ForeColor = Color.White;
-            bubble.BorderStyle = BorderStyle.FixedSingle;
+            bubble.BorderStyle = BorderStyle.Fixed3D;
             bubble.TextAlign = ContentAlignment.MiddleLeft;
             bubble.Margin = new Padding(5);
 
-            // ========== Wrap bubble in container panel ==========
+            // ========== Wrapper panel ==========
             Panel bubbleWrapper = new Panel();
             bubbleWrapper.AutoSize = true;
-            bubbleWrapper.Padding = new Padding(5);
             bubbleWrapper.Width = txtMessages.ClientSize.Width - 20;
             bubbleWrapper.BackColor = Color.Transparent;
 
+            // Temporarily add to wrapper to measure sizes
+            bubbleWrapper.Controls.Add(timestampLabel);
             bubbleWrapper.Controls.Add(bubble);
+            bubbleWrapper.PerformLayout();
 
-            // Manual alignment
+            // Align to the right or left
             if (isOwnMessage)
             {
-                bubble.Left = bubbleWrapper.Width - bubble.Width - 20; // right-align manually
+                int rightAlignedX = bubbleWrapper.Width - bubble.Width - sidePadding;
+                bubble.Left = rightAlignedX;
+                timestampLabel.Left = bubbleWrapper.Width - timestampLabel.Width - sidePadding;
             }
             else
             {
-                bubble.Left = 10; // left-align
+                bubble.Left = 10;
+                timestampLabel.Left = 10;
             }
 
-            // Add the wrapper to the FlowLayoutPanel
-            txtMessages.Controls.Add(bubbleWrapper);
+            // ========== Vertical stacking ==========
+            timestampLabel.Top = 0;
+            bubble.Top = timestampLabel.Bottom + 2;
 
-            // Scroll to the last added message
+            // ========== Add to wrapper ==========
+            bubbleWrapper.Controls.Clear(); // Clear to re-add in order
+            bubbleWrapper.Controls.Add(timestampLabel);
+            bubbleWrapper.Controls.Add(bubble);
+
+            // ========== Add to messages panel ==========
+            txtMessages.Controls.Add(bubbleWrapper);
             txtMessages.ScrollControlIntoView(bubbleWrapper);
         }
+
+
 
         private void StartListeningForServers()
         {
@@ -162,7 +187,7 @@ namespace frmClient
             btnSetName_Click(sender, e);
             if (string.IsNullOrEmpty(clientName))
             {
-                MessageBox.Show("Please set your name before connecting.");
+                MessageBox.Show("Please set your name before connecting.", "System Alert", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -171,7 +196,7 @@ namespace frmClient
                 string serverIp = txtServerIP.Text?.Trim();
                 if (string.IsNullOrEmpty(serverIp))
                 {
-                    MessageBox.Show("Please select a server IP to connect.");
+                    MessageBox.Show("Please select a server IP to connect.", "System Alert", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
@@ -183,7 +208,7 @@ namespace frmClient
 
                 txtMessages.Text += "Connected to server...\r\n";
 
-                string joinMsg = $"============== {clientName} has joined =============\r\n";
+                string joinMsg = $" {clientName} has joined \r\n";
                 byte[] nameBytes = Encoding.ASCII.GetBytes(joinMsg);
                 stream.Write(nameBytes, 0, nameBytes.Length);
             }
@@ -216,7 +241,7 @@ namespace frmClient
 
             if (string.IsNullOrEmpty(clientName))
             {
-                MessageBox.Show("Please enter a name before chatting.");
+                MessageBox.Show("Please enter a name before chatting.", "System Alert", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -228,7 +253,7 @@ namespace frmClient
         {
             txtServerIP.DropDownStyle = ComboBoxStyle.DropDownList;
             StartListeningForServers();
-            txtUsername.Text = Environment.UserName;
+            //txtUsername.Text = Environment.UserName;
         }
 
         private void frmClient_FormClosing(object sender, FormClosingEventArgs e)
