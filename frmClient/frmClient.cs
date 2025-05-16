@@ -2,9 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using ReaLTaiizor.Enum.Poison;
 
 namespace frmClient
 {
@@ -17,6 +15,7 @@ namespace frmClient
         private Thread receiveThread;
         private UdpClient udpListener;
         private bool listening = false;
+
 
         public frmClient()
         {
@@ -180,6 +179,63 @@ namespace frmClient
             tcpClient?.Close();
         }
 
+        private void ApplyDarkTheme()
+        {
+            this.BackColor = Color.FromArgb(30, 30, 30);
+            txtMessages.BackColor = Color.FromArgb(45, 45, 45);
+            txtMessages.ForeColor = Color.White;
+
+            btnSend.BackColor = Color.FromArgb(50, 50, 50);
+            btnSend.ForeColor = Color.White;
+            btnSend.BorderColor = Color.Gray;
+            btnSend.PrimaryColor = Color.FromArgb(103, 194, 58);
+            btnSend.HoverTextColor = Color.White;
+
+            hopeForm1.ForeColor = Color.White;
+
+            txtUsername.BackColor = Color.FromArgb(40, 40, 40);
+            txtUsername.ForeColor = Color.White;
+
+            tabPage1.BackColor = Color.FromArgb(30, 30, 30);
+            tabPage1.ForeColor = Color.White;
+            tabPage2.BackColor = Color.FromArgb(30, 30, 30);
+            tabPage2.ForeColor = Color.White;
+
+            txtServerIP.BackColor = Color.FromArgb(40, 40, 40);
+            txtServerIP.ForeColor = Color.FromArgb(20, 22, 48);
+            txtServerIP.ColorA = Color.Black;
+            txtServerIP.ColorB = Color.FromArgb(116, 168, 108);
+
+            txtInput.BackColor = Color.FromArgb(40, 40, 40);
+            txtInput.ForeColor = Color.White;
+
+        }
+        private void ApplyLightTheme()
+        {
+            this.BackColor = Color.WhiteSmoke;
+            txtMessages.BackColor = Color.White;
+            txtMessages.ForeColor = Color.Black;
+
+            btnSend.BackColor = Color.LightGray;
+            btnSend.ForeColor = Color.Black;
+            btnSend.BorderColor = Color.DarkGray;
+            btnSend.PrimaryColor = Color.FromArgb(64, 158, 255);
+
+            hopeForm1.ForeColor = Color.Black;
+
+            txtUsername.BackColor = Color.White;
+            txtUsername.ForeColor = Color.Black;
+
+            tabPage1.BackColor = Color.White;
+            tabPage1.ForeColor = Color.Black;
+            tabPage2.BackColor = Color.White;
+            tabPage2.ForeColor = Color.Black;
+
+            txtInput.BackColor = Color.White;
+            txtInput.ForeColor = Color.Black; 
+        }
+
+
         #endregion
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -187,7 +243,7 @@ namespace frmClient
             btnSetName_Click(sender, e);
             if (string.IsNullOrEmpty(clientName))
             {
-                MessageBox.Show("Please set your name before connecting.", "System Alert", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("Please set your name before connecting.", "System Alert", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -254,6 +310,7 @@ namespace frmClient
             txtServerIP.DropDownStyle = ComboBoxStyle.DropDownList;
             StartListeningForServers();
             //txtUsername.Text = Environment.UserName;
+
         }
 
         private void frmClient_FormClosing(object sender, FormClosingEventArgs e)
@@ -268,10 +325,10 @@ namespace frmClient
 
             StopListeningForServers();
 
-        
+
             Task.Run(() =>
             {
-                Thread.Sleep(300); 
+                Thread.Sleep(300);
                 this.Invoke((MethodInvoker)(() =>
                 {
                     StartListeningForServers();
@@ -286,6 +343,37 @@ namespace frmClient
             {
                 e.SuppressKeyPress = true;
                 btnSend_Click(sender, e);
+            }
+        }
+
+        private void poisonCheckBox1_CheckedChanged(object sender, EventArgs e)
+        {}
+
+        private void swtMode_CheckedChanged(object sender, EventArgs e)
+        {
+            if (swtMode.Checked)
+            {
+                ApplyDarkTheme();
+                poisonTabControl1.Theme = ThemeStyle.Dark;
+                poisonTabControl1.Style = ColorStyle.Green;
+            }
+            else
+            {
+                ApplyLightTheme();
+                poisonTabControl1.Theme = ThemeStyle.Light;
+                poisonTabControl1.Style = ColorStyle.Blue;
+            }
+        }
+
+        private void txtServerIP_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index >= 0)
+            {
+                var item = txtServerIP.Items[e.Index].ToString();
+
+                e.DrawBackground();
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(40, 40, 40)), e.Bounds);
+                e.Graphics.DrawString(item, e.Font, new SolidBrush(Color.White), e.Bounds);
             }
         }
     }
